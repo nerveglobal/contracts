@@ -1,8 +1,8 @@
 /**
- *Submitted for verification at Etherscan.io on 2019-04-05
+ *Submitted for verification at Etherscan.io on 2020-01-02
 */
 
-pragma solidity 0.5.7;
+pragma solidity ^0.5.15;
 
 
 library SafeMath 
@@ -69,16 +69,16 @@ contract nerveShares {
     uint8 public decimals;
     uint256 public totalSupply;
     uint256 public totalDividends;
-    uint256 internal constant MAX_UINT = 2**256 - 1;
 
     mapping (address => uint) public balanceOf;
     mapping (address => mapping (address => uint)) public allowance;
     mapping (address => uint256) internal lastDividends;
-    mapping (address => bool) public tradables;
+    mapping (address => bool) public lockedAccounts;
     
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
-    event Claim(address indexed _to, uint256 value);
+    event Claim(address indexed _from, uint256 value);
+    event Locked(address indexed _from, bool state);
 
     using SafeMath for uint256;
 
@@ -94,7 +94,7 @@ contract nerveShares {
     }
 
     /**
-    * @dev Get the dividends of a user. Take prior payoffs into account.
+    * @dev Get the current dividends of a user. Take prior payoffs into account.
     * @param account The address of the user.
     */
     function dividendBalanceOf(address account) public view returns (uint256) 
@@ -105,7 +105,7 @@ contract nerveShares {
     }   
 
     /**
-    * @dev Get the dividends of a user. Take prior payoffs into account.
+    * @dev Internal dividendBalanceOf.
     * @param account The address of the user.
     */
     function internalDividendBalanceOf(address account, uint256 tempLastDividends) internal view returns (uint256) 
@@ -132,35 +132,20 @@ contract nerveShares {
     }
 
     /**
-    * @dev Claim dividends internally. Get called on addresses opened for trade.
-    */
-    function internalClaimDividend(address payable from) internal 
-    {
-        uint256 tempLastDividends = lastDividends[from];
-        lastDividends[from] = totalDividends;
-        uint256 owing = internalDividendBalanceOf(from, tempLastDividends);
-
-        if (owing > 0) {
-
-        from.transfer(owing);
-
-        emit Claim(from, owing);
-        }
-    }
-
-    /**
     * @dev Open or close sending address for trade.
-    * @param allow True -> open
+    * @param lock True -> can't send or receive NRV.
     */
-    function allowTrade(bool allow) external
+    function lockToken(bool lock) external
     {
-        tradables[msg.sender] = allow;
+        lockedAccounts[msg.sender] = lock;
+        
+        emit Locked(msg.sender, lock);
     }
 
     /**
-    * @dev Transfer tokens
-    * @param to The address of the recipient
-    * @param value the amount to send
+    * @dev Transfer tokens.
+    * @param to The address of the recipient.
+    * @param value The amount to send.
     */
     function transfer(address payable to, uint256 value) external returns(bool success)
     {
@@ -169,7 +154,7 @@ contract nerveShares {
     }
 
     /**
-    * @dev Transfer tokens. Make sure that both participants have no open dividends left.
+    * @dev Transfer tokens. Spread open dividends across all users.
     * @param to The address to transfer to.
     * @param value The amount to be transferred.
     */
@@ -177,50 +162,41 @@ contract nerveShares {
     {   
         require(value > 0, "Transferred value has to be grater than 0.");
         require(to != address(0), "0x00 address not allowed.");
+        require(lockedAccounts[to] == false, "Target address is locked.");
+        require(lockedAccounts[from] == false, "Sending address is locked.");
         require(value <= balanceOf[from], "Not enough funds on sender address.");
         require(balanceOf[to] + value >= balanceOf[to], "Overflow protection.");
  
         uint256 fromOwing = dividendBalanceOf(from);
         uint256 toOwing = dividendBalanceOf(to);
 
-        if (tradables[from] == true && (tradables[to] == true || toOwing == 0)) 
-        {
+        lastDividends[to] = totalDividends;
+        lastDividends[from] = totalDividends;
 
-            internalClaimDividend(from);
-            internalClaimDividend(to);
-        } else {
-            
-            require(fromOwing == 0 && toOwing == 0, "Unclaimed dividends on sender and/or receiver");
-        }
-        
+        totalDividends = totalDividends.add(fromOwing);
+        totalDividends = totalDividends.add(toOwing);
+
         balanceOf[from] -= value;
         balanceOf[to] += value;
- 
-        lastDividends[to] = lastDividends[from];    // In case of new account, set lastDividends of receiver to totalDividends.
  
         emit Transfer(from, to, value);
     }
 
     /**
-    * @dev ERC20 transferFrom, modified such that an allowance of MAX_UINT represents an unlimited allowance.
+    * @dev ERC20 transferFrom.
     * @param from Address to transfer from.
     * @param to Address to transfer to.
     * @param value Amount to transfer.
-    * @return Success of transfer.
+    * @return success of transfer.
     */
     function transferFrom(address payable from, address payable to, uint value) external returns (bool success)
-    {
-        uint256 allowanceTemp = allowance[from][msg.sender];
-        
-        require(allowanceTemp >= value, "Funds not approved."); 
+    {     
+        require(allowance[from][msg.sender] >= value, "Funds not approved."); 
         require(balanceOf[from] >= value, "Not enough funds on sender address.");
         require(balanceOf[to] + value >= balanceOf[to], "Overflow protection.");
 
-        if (allowanceTemp < MAX_UINT) 
-        {
-            allowance[from][msg.sender] -= value;
-        }
-        
+        allowance[from][msg.sender] -= value;
+  
         _transfer(from, to, value);
 
         return true;
@@ -237,28 +213,7 @@ contract nerveShares {
         emit Approval(msg.sender, spender, value);
         return true;
     }
-
-    /**
-    * @dev Set unlimited allowance for other address
-    * @param target The address authorized to spend
-    */   
-    function giveAccess(address target) external
-    {
-        require(target != address(0), "0x00 address not allowed.");
-        allowance[msg.sender][target] = MAX_UINT;
-        emit Approval(msg.sender, target, MAX_UINT);
-    }
-
-    /**
-    * @dev Set allowance for other address to 0
-    * @param target The address authorized to spend
-    */   
-    function revokeAccess(address target) external
-    {
-        require(target != address(0), "0x00 address not allowed.");
-        allowance[msg.sender][target] = 0;
-    }
-    
+   
     /**
     * @dev Get contract ETH amount. 
     */ 
