@@ -11,10 +11,10 @@ abstract contract NrvToken
 
 {
     function mintNrv(address _to, uint256 _amount) external virtual;
-}
 
-{
     function burnNrv(address _from, uint256 _amount) external virtual;
+    
+    function receiveFee() external payable virtual;
 }
 
 /******************************************/
@@ -24,6 +24,8 @@ abstract contract NrvToken
 contract Nrv
 {
     NrvToken public nrvToken;
+    address public nrvGov;
+    bool internal initialized;
     uint256 public taskFee;
     uint256 public betFee;
 
@@ -73,39 +75,50 @@ contract Nrv
         mapping(address => uint256) partyB;
     }
 
-    event TaskAdded(address indexed initiator, uint256 indexed taskID, address indexed recipient, uint256 amount, string description, uint256 endTask, string language, string hashtag1, string hashtag2, string hashtag3);
+    event TaskAdded(address indexed initiator, uint256 indexed taskID, address indexed recipient, uint256 amount, string description, uint256 endTask, string language, uint256 lat, uint256 lon);
     event TaskJoined(address indexed participant, uint256 indexed taskID, uint256 amount);
     event Voted(address indexed participant, uint256 indexed taskID, bool vote, bool finished);
     event RecipientRedeemed(address indexed recipient, uint256 indexed taskID, uint256 amount);
     event UserRedeemed(address indexed participant, uint256 indexed taskID, uint256 amount);
-    event TaskPromoted(uint256 taskID, uint256 amount);
+    event TaskProved(uint256 indexed taskID, string proofLink);
+    event TaskPromoted(uint256 indexed taskID, uint256 amount);
 
-    event BetCreated(address indexed initiator, uint256 indexed betID, string description, uint256 endBet, string yesText, string noText, string language, string hashtag1, string hashtag2, string hashtag3);
+    event BetCreated(address indexed initiator, uint256 indexed betID, string description, uint256 endBet, string yesText, string noText, string language, uint256 lat, uint256 lon);
     event BetJoined(address indexed participant, uint256 indexed betID, uint256 amount, bool joinA);
     event BetClosed(address indexed initiator, uint256 indexed betID);
     event BetFinished(address indexed initiator, uint256 indexed betID, bool winnerPartyA, bool draw, bool failed);
     event BetRedeemed(address indexed participant, uint256 indexed betID, uint256 profit);
     event BetBailout(address indexed participant, uint256 indexed betID, uint256 userStake);
-    event BetPromoted(uint256 betID, uint256 amount);
+    event BetProved(uint256 indexed betID, string proofLink);
+    event BetPromoted(uint256 indexed betID, uint256 amount);
 
-    constructor(address _nrvToken) 
+    modifier onlyGov() {
+        require(msg.sender == address(nrvGov), "Caller is not nrvGov.");
+        _;
+    }
+    
+    constructor() 
     { 
-        nrvToken = _nrvToken;
-        nrvGov = _nrvGov;
         currentTaskID = 0;
         currentBetID = 0;
     }
-
-    function setFees(uint256 _taskFee, uint256 _betFee) external 
+    
+    function initialize(address _nrvToken, address _nrvGov) public 
     {
-        require(msg.sender = address(nrvGov), "Has to be called by nrvGov contract.");
+        require(initialized == false, "Already initialized.");
+        initialized = true;
+        nrvGov = _nrvGov;
+        nrvToken = NrvToken(_nrvToken);
+    }
+
+    function setFees(uint256 _taskFee, uint256 _betFee) external onlyGov
+    {
         taskFee = _taskFee;
         betFee = _betFee;
     }
 
-    function setGovernance(address _nrvGov) external
+    function setGovernance(address _nrvGov) external onlyGov
     {
-        require(msg.sender = address(nrvGov), "Has to be called by nrvGov contract.");
         nrvGov = _nrvGov;
     }
 
@@ -119,7 +132,7 @@ contract Nrv
     * @param description String that describes the task.
     * @param duration Time until task closes.
     */
-    function createTask(address recipient, string memory description, uint256 duration, string memory language, string memory hashtag1, string memory hashtag2, string memory hashtag3) public payable
+    function createTask(address recipient, string memory description, uint256 duration, string memory language, uint256 lat, uint256 lon) public payable
     {
         require(recipient != address(0), "0x00 address not allowed.");
         require(msg.value != 0, "No stake defined.");
@@ -134,7 +147,7 @@ contract Nrv
         s.participants++;
         s.stakes[msg.sender] = msg.value;
 
-        emit TaskAdded(msg.sender, currentTaskID, recipient, msg.value, description, s.endTask, language, hashtag1, hashtag2, hashtag3);
+        emit TaskAdded(msg.sender, currentTaskID, recipient, msg.value, description, s.endTask, language, lat, lon);
     }
 
     /**
@@ -200,7 +213,7 @@ contract Nrv
         tasks[taskID].executed = true;                                                  // Avoid recursive calling
         uint256 fee = uint256(tasks[taskID].amount) / taskFee;
         payable(msg.sender).transfer(uint256(tasks[taskID].amount) - fee);   
-        address(nrvToken).transfer(fee);                                                          
+        nrvToken.receiveFee {value: fee};                                                          
         nrvToken.mintNrv(msg.sender, fee);                                                   
 
         emit RecipientRedeemed(msg.sender, taskID, tasks[taskID].amount);
@@ -227,6 +240,18 @@ contract Nrv
     }
 
     /**
+    * @dev Public function to prove a task.
+    * @param taskID ID of the task.
+    * @param proofLink Link to proof.
+    */
+    function proveTask(uint256 taskID, string proofLink) public
+    {
+        require(tasks[taskID].recipient == msg.sender, "Can only be proved by recipient.");
+
+        emit TaskProved(taskID, proofLink);
+    }
+
+    /**
     * @dev Public function to promote a task and burn NRV.
     * @param taskID ID of the task.
     * @param amount Amount of NRV to burn.
@@ -249,7 +274,7 @@ contract Nrv
     * @param description Description of the Bet.
     * @param duration Time in seconds until bet gets reverted.
     */
-    function createBet(string memory description, uint256 duration, string memory yesText, string memory noText, string memory language, string memory hashtag1, string memory hashtag2, string memory hashtag3) public 
+    function createBet(string memory description, uint256 duration, string memory yesText, string memory noText, string memory language, uint256 lat, uint256 lon) public 
     {           
         currentBetID++;
         betInfo storage b = bets[currentBetID];
@@ -257,7 +282,7 @@ contract Nrv
         b.initiator = msg.sender;
         b.endBet = uint40(block.timestamp + duration);
 
-        emit BetCreated(msg.sender, currentBetID, description, b.endBet, yesText, noText, language, hashtag1, hashtag2, hashtag3);
+        emit BetCreated(msg.sender, currentBetID, description, b.endBet, yesText, noText, language, lat, lon);
     }
 
     /**
@@ -324,7 +349,7 @@ contract Nrv
 
         uint256 losingStakes = bets[betID].winnerPartyA ? bets[betID].stakesB : bets[betID].stakesA;
         uint256 fee = losingStakes / betFee; 
-        address(nrvToken).transfer(fee);                                                
+        nrvToken.receiveFee {value: fee};                                                
         nrvToken.mintNrv(msg.sender, fee);
 
         emit BetFinished(msg.sender, betID, winnerPartyA, draw, false);
@@ -397,8 +422,20 @@ contract Nrv
     }
 
     /**
+    * @dev Public function to prove a task.
+    * @param betID ID of the task.
+    * @param proofLink Link to proof.
+    */
+    function proveBet(uint256 betID, string proofLink) public
+    {
+        require(bets[betID].recipient == msg.sender, "Can only be proved by creator.");
+
+        emit BetProved(betID, proofLink);
+    }
+
+    /**
     * @dev Public function to promote a bet and burn NRV.
-    * @param taskID ID of the bet.
+    * @param betID ID of the bet.
     * @param amount Amount of NRV to burn.
     */
     function promoteBet(uint256 betID, uint256 amount) public
