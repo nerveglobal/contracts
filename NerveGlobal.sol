@@ -213,8 +213,8 @@ contract Nrv
         tasks[taskID].executed = true;                                                  // Avoid recursive calling
         uint256 fee = uint256(tasks[taskID].amount) / taskFee;
         payable(msg.sender).transfer(uint256(tasks[taskID].amount) - fee);   
-        nrvToken.receiveFee {value: fee};                                                          
-        nrvToken.mintNrv(msg.sender, fee);                                                   
+        nrvToken.mintNrv(msg.sender, fee);         
+        nrvToken.receiveFee {value: fee}();                                                          
 
         emit RecipientRedeemed(msg.sender, taskID, tasks[taskID].amount);
         
@@ -244,7 +244,7 @@ contract Nrv
     * @param taskID ID of the task.
     * @param proofLink Link to proof.
     */
-    function proveTask(uint256 taskID, string proofLink) public
+    function proveTask(uint256 taskID, string memory proofLink) public
     {
         require(tasks[taskID].recipient == msg.sender, "Can only be proved by recipient.");
 
@@ -349,8 +349,8 @@ contract Nrv
 
         uint256 losingStakes = bets[betID].winnerPartyA ? bets[betID].stakesB : bets[betID].stakesA;
         uint256 fee = losingStakes / betFee; 
-        nrvToken.receiveFee {value: fee};                                                
-        nrvToken.mintNrv(msg.sender, fee);
+        nrvToken.mintNrv(msg.sender, fee);         
+        nrvToken.receiveFee {value: fee}();  
 
         emit BetFinished(msg.sender, betID, winnerPartyA, draw, false);
     }
@@ -426,9 +426,9 @@ contract Nrv
     * @param betID ID of the task.
     * @param proofLink Link to proof.
     */
-    function proveBet(uint256 betID, string proofLink) public
+    function proveBet(uint256 betID, string memory proofLink) public
     {
-        require(bets[betID].recipient == msg.sender, "Can only be proved by creator.");
+        require(bets[betID].initiator == msg.sender, "Can only be proved by initiator.");
 
         emit BetProved(betID, proofLink);
     }
