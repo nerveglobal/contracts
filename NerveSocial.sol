@@ -20,8 +20,9 @@ contract NerveSocial
     /******************************************/
 
 
-/**
-    NameRegistered
+    /**
+    * @dev Public function to register a unique name to an address. 
+    * @param registeredName Name the user wishes to register. 
     */
     function registerName(bytes32 registeredName) external
     {
@@ -43,7 +44,9 @@ contract NerveSocial
 
 
     /**
-    SocialRegistered
+    * @dev Public function to register social media links. 
+    * @param registeredLink Link to a social media profile. 
+    * @param socialID Dapp ID of social media link.
     */
     function registerSocial(string[] memory registeredLink, uint256[] memory socialID) external
     {            
@@ -57,7 +60,9 @@ contract NerveSocial
     
     
     /**
-    LocationRegistered
+    * @dev Public function to set location for google maps.
+    * @param latitude Coordinates of the latitude.
+    * @param longitude Coordinates of the longitude.
     */
     function setLocation(uint256 latitude, uint256 longitude) external
     {
@@ -65,8 +70,9 @@ contract NerveSocial
     }
 
 
-     /**
-    UserBlacklisted
+    /**
+    * @dev Public function to put a user on the blacklist. 
+    * @param userToBlacklist Address of user to blacklist.
     */
     function setBlacklistUser(address userToBlacklist) external
     {
