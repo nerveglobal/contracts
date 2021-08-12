@@ -10,7 +10,7 @@ contract NerveSocial
     
 
     event NameRegistered(address indexed user, bytes32 registeredName);
-    event SocialRegistered(address indexed user, string[] output, uint256[] socialOutput);
+    event SocialRegistered(address indexed user, string[] socialLinks, uint256[] socialIds);
     event LocationRegistered(address indexed user, uint256 latitude, uint256 longitude);  
     event UserBlacklisted(address indexed user, address userToBlacklist);
     
@@ -51,11 +51,11 @@ contract NerveSocial
     function registerSocial(string[] memory registeredLink, uint256[] memory socialID) external
     {            
         uint256 arrayLength = registeredLink.length;
-        string[] memory output = new string[](arrayLength);
+        string[] memory socialLinks = new string[](arrayLength);
         
         uint256 socialArrayLength = socialID.length;
-        uint256[] memory socialOutput = new uint256[](socialArrayLength);
-        emit SocialRegistered(msg.sender, output, socialOutput);
+        uint256[] memory socialIds = new uint256[](socialArrayLength);
+        emit SocialRegistered(msg.sender, socialLinks, socialIds);
     }
     
     
