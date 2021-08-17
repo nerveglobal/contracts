@@ -3,9 +3,9 @@
 
 pragma solidity ^0.8.0;
 
-/******************************************/
-/*       NrvToken starts here             */
-/******************************************/
+    /******************************************/
+    /*          NrvToken starts here          */
+    /******************************************/
 
 abstract contract NrvToken 
 
@@ -17,9 +17,9 @@ abstract contract NrvToken
     function receiveFee() external payable virtual;
 }
 
-/******************************************/
-/*            Nrv starts here             */
-/******************************************/
+    /******************************************/
+    /*            Nrv starts here             */
+    /******************************************/
 
 contract Nrv
 {
@@ -423,7 +423,7 @@ contract Nrv
 
     /**
     * @dev Public function to prove a task.
-    * @param betID ID of the task.
+    * @param betID ID of the bet.
     * @param proofLink Link to proof.
     */
     function proveBet(uint256 betID, string memory proofLink) public
