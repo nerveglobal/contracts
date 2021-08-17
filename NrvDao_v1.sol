@@ -1,3 +1,4 @@
+
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.2;
@@ -138,8 +139,11 @@ contract NrvGov is Ownable {
 
     Nrv public nrv;
     NrvToken public nrvToken;
-
-    constructor(address _nrv, address _nrvToken) {
+    bool internal initialized;
+    
+    function initialize(address _nrv, address _nrvToken) public {
+        require(initialized == false, "Already initialized.");
+        initialized = true;
         nrv = Nrv(_nrv);
         nrvToken = NrvToken(_nrvToken);
     }
