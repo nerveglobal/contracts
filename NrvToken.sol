@@ -1,3 +1,4 @@
+
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.2;
@@ -679,7 +680,7 @@ contract NrvToken is FundsDistributionToken {
     /**
     * @dev Receive fees.
     */
-    receive() external payable {
+    function receiveFee() external payable {
 		if (msg.value > 0) {
 			_distributeFunds(msg.value);
 			emit FundsDistributed(msg.sender, msg.value);
