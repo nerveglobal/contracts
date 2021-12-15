@@ -12,4 +12,4 @@ These addresses are final and were deployed from these versions:
 | Contract                           | Address                                      | Source Code                                                                                                                   |
 | ---------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | NerveGlobal                        | `0x0000000000000000000000000000000000000000` | https://github.com/nerveglobal/contracts/blob/master/NerveGlobal.sol                                                          |
-| NerveSwap.                         | `0x0000000000000000000000000000000000000000` | https://github.com/nerveglobal/contracts/blob/master/NerveSocial.sol                                                          |
+| NerveSwap.                         | `0x0000000000000000000000000000000000000000` | https://github.com/nerveglobal/contracts/blob/master/NerveSwap.sol.                                                          |
