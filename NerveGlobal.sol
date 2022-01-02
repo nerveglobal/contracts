@@ -1,5 +1,5 @@
 /**
- *Submitted for verification at polygonscan.com on 2021-12-14
+ *Submitted for verification at polygonscan.com on 2021-12-23
 */
 
 // SPDX-License-Identifier: MIT
@@ -472,72 +472,206 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
     ) internal virtual {}
 }
 
+pragma solidity ^0.8.9;
+
 /******************************************/
-/*       IUniswapV2Pair starts here       */
+/*     IUniswapV2Router01 starts here     */
 /******************************************/
 
-interface IUniswapV2Pair {
-    event Approval(address indexed owner, address indexed spender, uint value);
-    event Transfer(address indexed from, address indexed to, uint value);
+interface IUniswapV2Router01 {
+    function factory() external pure returns (address);
+    function WETH() external pure returns (address);
 
-    function name() external pure returns (string memory);
-    function symbol() external pure returns (string memory);
-    function decimals() external pure returns (uint8);
-    function totalSupply() external view returns (uint);
-    function balanceOf(address owner) external view returns (uint);
-    function allowance(address owner, address spender) external view returns (uint);
+    function addLiquidity(
+        address tokenA,
+        address tokenB,
+        uint amountADesired,
+        uint amountBDesired,
+        uint amountAMin,
+        uint amountBMin,
+        address to,
+        uint deadline
+    ) external returns (uint amountA, uint amountB, uint liquidity);
+    function addLiquidityETH(
+        address token,
+        uint amountTokenDesired,
+        uint amountTokenMin,
+        uint amountETHMin,
+        address to,
+        uint deadline
+    ) external payable returns (uint amountToken, uint amountETH, uint liquidity);
+    function removeLiquidity(
+        address tokenA,
+        address tokenB,
+        uint liquidity,
+        uint amountAMin,
+        uint amountBMin,
+        address to,
+        uint deadline
+    ) external returns (uint amountA, uint amountB);
+    function removeLiquidityETH(
+        address token,
+        uint liquidity,
+        uint amountTokenMin,
+        uint amountETHMin,
+        address to,
+        uint deadline
+    ) external returns (uint amountToken, uint amountETH);
+    function removeLiquidityWithPermit(
+        address tokenA,
+        address tokenB,
+        uint liquidity,
+        uint amountAMin,
+        uint amountBMin,
+        address to,
+        uint deadline,
+        bool approveMax, uint8 v, bytes32 r, bytes32 s
+    ) external returns (uint amountA, uint amountB);
+    function removeLiquidityETHWithPermit(
+        address token,
+        uint liquidity,
+        uint amountTokenMin,
+        uint amountETHMin,
+        address to,
+        uint deadline,
+        bool approveMax, uint8 v, bytes32 r, bytes32 s
+    ) external returns (uint amountToken, uint amountETH);
+    function swapExactTokensForTokens(
+        uint amountIn,
+        uint amountOutMin,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external returns (uint[] memory amounts);
+    function swapTokensForExactTokens(
+        uint amountOut,
+        uint amountInMax,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external returns (uint[] memory amounts);
+    function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline)
+        external
+        payable
+        returns (uint[] memory amounts);
+    function swapTokensForExactETH(uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
+        external
+        returns (uint[] memory amounts);
+    function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
+        external
+        returns (uint[] memory amounts);
+    function swapETHForExactTokens(uint amountOut, address[] calldata path, address to, uint deadline)
+        external
+        payable
+        returns (uint[] memory amounts);
 
-    function approve(address spender, uint value) external returns (bool);
-    function transfer(address to, uint value) external returns (bool);
-    function transferFrom(address from, address to, uint value) external returns (bool);
+    function quote(uint amountA, uint reserveA, uint reserveB) external pure returns (uint amountB);
+    function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut) external pure returns (uint amountOut);
+    function getAmountIn(uint amountOut, uint reserveIn, uint reserveOut) external pure returns (uint amountIn);
+    function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts);
+    function getAmountsIn(uint amountOut, address[] calldata path) external view returns (uint[] memory amounts);
+}
 
-    function DOMAIN_SEPARATOR() external view returns (bytes32);
-    function PERMIT_TYPEHASH() external pure returns (bytes32);
-    function nonces(address owner) external view returns (uint);
+/******************************************/
+/*     IUniswapV2Router02 starts here     */
+/******************************************/
 
-    function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external;
+interface IUniswapV2Router02 is IUniswapV2Router01 {
+    function removeLiquidityETHSupportingFeeOnTransferTokens(
+        address token,
+        uint liquidity,
+        uint amountTokenMin,
+        uint amountETHMin,
+        address to,
+        uint deadline
+    ) external returns (uint amountETH);
+    function removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
+        address token,
+        uint liquidity,
+        uint amountTokenMin,
+        uint amountETHMin,
+        address to,
+        uint deadline,
+        bool approveMax, uint8 v, bytes32 r, bytes32 s
+    ) external returns (uint amountETH);
 
-    event Mint(address indexed sender, uint amount0, uint amount1);
-    event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
-    event Swap(
-        address indexed sender,
-        uint amount0In,
-        uint amount1In,
-        uint amount0Out,
-        uint amount1Out,
-        address indexed to
-    );
-    event Sync(uint112 reserve0, uint112 reserve1);
+    function swapExactTokensForTokensSupportingFeeOnTransferTokens(
+        uint amountIn,
+        uint amountOutMin,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external;
+    function swapExactETHForTokensSupportingFeeOnTransferTokens(
+        uint amountOutMin,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external payable;
+    function swapExactTokensForETHSupportingFeeOnTransferTokens(
+        uint amountIn,
+        uint amountOutMin,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external;
+}
 
-    function MINIMUM_LIQUIDITY() external pure returns (uint);
-    function factory() external view returns (address);
-    function token0() external view returns (address);
-    function token1() external view returns (address);
-    function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
-    function price0CumulativeLast() external view returns (uint);
-    function price1CumulativeLast() external view returns (uint);
-    function kLast() external view returns (uint);
+/******************************************/
+/*         TokenSwap starts here          */
+/******************************************/
 
-    function mint(address to) external returns (uint liquidity);
-    function burn(address to) external returns (uint amount0, uint amount1);
-    function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
-    function skim(address to) external;
-    function sync() external;
+contract TokenSwap {
+    address internal constant UNISWAP_ROUTER_ADDRESS = 0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506;
+    address internal constant NERVESWAP_ROUTER_ADDRESS = 0x7C4EE503CcEC127279e9161d5B8F15803872797e;
+    IUniswapV2Router02 public uniswapRouter;
+    IUniswapV2Router02 public nerveswapRouter;
 
-    function initialize(address, address) external;
+    address internal constant wrappedEth = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
+    address internal immutable nerveToken;
+
+    constructor() {
+        uniswapRouter = IUniswapV2Router02(UNISWAP_ROUTER_ADDRESS);
+        nerveswapRouter = IUniswapV2Router02(NERVESWAP_ROUTER_ADDRESS);
+        nerveToken = address(this);
+    }
+
+    function getEstimatedNerveForMatic(uint256 maticAmount) public view returns (uint256) {
+        return nerveswapRouter.getAmountsOut(maticAmount, getPathForMaticToNerve())[1];
+    }
+
+    function getEstimatedMaticForWeth(uint256 maticAmount) public view returns (uint256) {
+        return uniswapRouter.getAmountsOut(maticAmount, getPathForWethToMatic())[1];
+    }
+
+    function getPathForMaticToNerve() private view returns (address[] memory) {
+        address[] memory path = new address[](2);
+        path[0] = nerveswapRouter.WETH();   // wrapped MATIC
+        path[1] = nerveToken;               // NERVE
+    
+        return path;
+    }
+
+    function getPathForWethToMatic() private view returns (address[] memory) {
+        address[] memory path = new address[](2);
+        path[0] = wrappedEth;               // wrapped ETH
+        path[1] = uniswapRouter.WETH();     // wrapped MATIC
+
+        return path;
+    }
+
+    // important to receive ETH
+    receive() payable external {}
 }
 
 /******************************************/
 /*         NerveToken starts here         */
 /******************************************/
 
-contract NerveToken is ERC20  {
+contract NerveToken is ERC20, TokenSwap  {
 
-    // Collect fee on Nerve Swap and prepare for buy back and burn
-    address public nexus;
-    address public nerveSwap;
-    address public nervePair;
-    address public ethPair;
+    address public nexusShares;
+    address public nexusBurn;
     
     // target: 1 ETH = 100,000 NERVE 
     // 7.5% of fee to user
@@ -553,41 +687,37 @@ contract NerveToken is ERC20  {
 
     }
     
-    function initialize(address _ethPair, address _nervePair, address _nerveSwap, address _nexus) public
+    function initialize(address _nexusBurn, address _nexusShares) public
     {
-        require(nexus == address(0), "Already initialized.");
-        ethPair = _ethPair;
-        nervePair = _nervePair;
-        nerveSwap = _nerveSwap;
-        nexus = _nexus;
-    }
-
-    function getTokenPrice(address _pair) public view returns(uint256)
-    {
-        IUniswapV2Pair pair = IUniswapV2Pair(_pair);
-        (uint256 Res0, uint256 Res1,) = pair.getReserves();
-        return(Res0 * 1e6 / Res1);
+        require(nexusShares == address(0), "Already initialized.");
+        nexusBurn = _nexusBurn;
+        nexusShares = _nexusShares;
     }
 
     // distribute new Nerve tokens in relation to paid fee, Ether conversion rate of the native token and current NERVE price.
     function mintNerve(address _to, uint256 _amount) internal  
     {
-        uint256 ethPrice = getTokenPrice(ethPair);
-        uint256 nervePrice = getTokenPrice(nervePair);
-        // ignore NERVE price when below target
-        if (nervePrice <= 1e12) nervePrice = 1e12;    
-        uint256 userAmount = 1e12 * _amount * userRate / ethPrice / nervePrice;
-        uint256 nexusAmount = 1e12 * _amount * nexusRate / ethPrice / nervePrice;
+        uint256 userAmount;
+        uint256 nexusAmount;
+        uint256 maticForEth = getEstimatedMaticForWeth(1e18);
+        uint256 nerveForMatic = getEstimatedNerveForMatic(_amount);
 
+        if(nerveForMatic < _amount * (userRate + nexusRate) * 1e18 / maticForEth) {
+            userAmount =  nerveForMatic * 3 / 4; 
+            nexusAmount = nerveForMatic / 4; 
+        } else {
+            userAmount = _amount * userRate * 1e18 / maticForEth; 
+            nexusAmount = _amount * nexusRate * 1e18 / maticForEth; 
+        }
         _mint(_to, userAmount);
-        _mint(nexus, nexusAmount);
+        _mint(nexusShares, nexusAmount);
         emit NerveMinted(_to, userAmount, nexusAmount);
     }
 
     // allow Nerve Swap to directly burn tokens
     function burnNerve(address _from, uint256 _amount) external
     {
-        require(msg.sender == nerveSwap, "Must be Nerve Swap.");
+        require(msg.sender == nexusBurn, "Must be Nerve Swap.");
         _burn(_from, _amount);
         emit NerveBurned(_from, _amount);
     }
@@ -730,7 +860,7 @@ contract NerveGlobal is NerveSocial, NerveToken
 
         uint256 fee = msg.value / taskFee;
         uint256 stake = msg.value - fee;
-        payable(nerveSwap).transfer(fee);
+        payable(nexusBurn).transfer(fee);
         mintNerve(msg.sender, fee);
 
         currentTaskID++;        
@@ -757,7 +887,7 @@ contract NerveGlobal is NerveSocial, NerveToken
 
         uint256 fee = msg.value / taskFee;
         uint256 stake = msg.value - fee;
-        payable(nerveSwap).transfer(fee);
+        payable(nexusBurn).transfer(fee);
         mintNerve(msg.sender, fee);
 
         tasks[taskID].amount = tasks[taskID].amount + uint96(stake);
@@ -797,7 +927,7 @@ contract NerveGlobal is NerveSocial, NerveToken
         tasks[taskID].executed = true;                                                  
         uint256 fee = uint256(tasks[taskID].amount) / taskFee;
         payable(msg.sender).transfer(uint256(tasks[taskID].amount) - fee);
-        payable(nerveSwap).transfer(fee);
+        payable(nexusBurn).transfer(fee);
         mintNerve(msg.sender, fee);                                                          
 
         emit RecipientRedeemed(msg.sender, taskID, tasks[taskID].amount);
@@ -886,7 +1016,7 @@ contract NerveGlobal is NerveSocial, NerveToken
         bets[betID].draw = draw;
         uint256 losingStakes = bets[betID].winnerPartyYes ? bets[betID].stakesNo : bets[betID].stakesYes;
         uint256 fee = losingStakes / betFee;
-        payable(nerveSwap).transfer(fee);
+        payable(nexusBurn).transfer(fee);
         mintNerve(msg.sender, fee);
 
         emit BetFinished(msg.sender, betID, winnerPartyYes, draw, false);
