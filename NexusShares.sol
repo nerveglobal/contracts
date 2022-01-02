@@ -1,13 +1,42 @@
+/**
+ *Submitted for verification at polygonscan.com on 2021-12-23
+*/
 
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.2;
+// File: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Context.sol
 
-/******************************************/
-/*           IERC20 starts here           */
-/******************************************/
 
-// File: @openzeppelin/contracts/token/ERC20/IERC20.sol
+// OpenZeppelin Contracts v4.3.2 (utils/Context.sol)
+
+pragma solidity ^0.8.0;
+
+/**
+ * @dev Provides information about the current execution context, including the
+ * sender of the transaction and its data. While these are generally available
+ * via msg.sender and msg.data, they should not be accessed in such a direct
+ * manner, since when dealing with meta-transactions the account sending and
+ * paying for execution may not be the actual sender (as far as an application
+ * is concerned).
+ *
+ * This contract is only required for intermediate, library-like contracts.
+ */
+abstract contract Context {
+    function _msgSender() internal view virtual returns (address) {
+        return msg.sender;
+    }
+
+    function _msgData() internal view virtual returns (bytes calldata) {
+        return msg.data;
+    }
+}
+
+// File: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol
+
+
+// OpenZeppelin Contracts v4.4.1 (token/ERC20/IERC20.sol)
+
+pragma solidity ^0.8.0;
 
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.
@@ -87,38 +116,13 @@ interface IERC20 {
     event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
-/******************************************/
-/*           Context starts here          */
-/******************************************/
+// File: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/extensions/IERC20Metadata.sol
 
-// File: @openzeppelin/contracts/GSN/Context.sol
 
-/*
- * @dev Provides information about the current execution context, including the
- * sender of the transaction and its data. While these are generally available
- * via msg.sender and msg.data, they should not be accessed in such a direct
- * manner, since when dealing with meta-transactions the account sending and
- * paying for execution may not be the actual sender (as far as an application
- * is concerned).
- *
- * This contract is only required for intermediate, library-like contracts.
- */
-abstract contract Context {
-    function _msgSender() internal view virtual returns (address) {
-        return msg.sender;
-    }
+// OpenZeppelin Contracts v4.4.1 (token/ERC20/extensions/IERC20Metadata.sol)
 
-    function _msgData() internal view virtual returns (bytes calldata) {
-        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
-        return msg.data;
-    }
-}
+pragma solidity ^0.8.0;
 
-/******************************************/
-/*      IERC20Metadata starts here        */
-/******************************************/
-
-// File: @openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol
 
 /**
  * @dev Interface for the optional metadata functions from the ERC20 standard.
@@ -142,11 +146,15 @@ interface IERC20Metadata is IERC20 {
     function decimals() external view returns (uint8);
 }
 
-/******************************************/
-/*           ERC20 starts here            */
-/******************************************/
+// File: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol
 
-// File: @openzeppelin/contracts/token/ERC20/ERC20.sol
+
+// OpenZeppelin Contracts v4.4.1 (token/ERC20/ERC20.sol)
+
+pragma solidity ^0.8.0;
+
+
+
 
 /**
  * @dev Implementation of the {IERC20} interface.
@@ -159,9 +167,10 @@ interface IERC20Metadata is IERC20 {
  * https://forum.zeppelin.solutions/t/how-to-implement-erc20-supply-mechanisms/226[How
  * to implement supply mechanisms].
  *
- * We have followed general OpenZeppelin guidelines: functions revert instead
- * of returning `false` on failure. This behavior is nonetheless conventional
- * and does not conflict with the expectations of ERC20 applications.
+ * We have followed general OpenZeppelin Contracts guidelines: functions revert
+ * instead returning `false` on failure. This behavior is nonetheless
+ * conventional and does not conflict with the expectations of ERC20
+ * applications.
  *
  * Additionally, an {Approval} event is emitted on calls to {transferFrom}.
  * This allows applications to reconstruct the allowance for all accounts just
@@ -214,7 +223,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
     /**
      * @dev Returns the number of decimals used to get its user representation.
      * For example, if `decimals` equals `2`, a balance of `505` tokens should
-     * be displayed to a user as `5,05` (`505 / 10 ** 2`).
+     * be displayed to a user as `5.05` (`505 / 10 ** 2`).
      *
      * Tokens usually opt for a value of 18, imitating the relationship between
      * Ether and Wei. This is the value {ERC20} uses, unless this function is
@@ -345,9 +354,9 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
     }
 
     /**
-     * @dev Moves tokens `amount` from `sender` to `recipient`.
+     * @dev Moves `amount` of tokens from `sender` to `recipient`.
      *
-     * This is internal function is equivalent to {transfer}, and can be used to
+     * This internal function is equivalent to {transfer}, and can be used to
      * e.g. implement automatic token fees, slashing mechanisms, etc.
      *
      * Emits a {Transfer} event.
@@ -376,6 +385,8 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
         _balances[recipient] += amount;
 
         emit Transfer(sender, recipient, amount);
+
+        _afterTokenTransfer(sender, recipient, amount);
     }
 
     /** @dev Creates `amount` tokens and assigns them to `account`, increasing
@@ -395,6 +406,8 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
         _totalSupply += amount;
         _balances[account] += amount;
         emit Transfer(address(0), account, amount);
+
+        _afterTokenTransfer(address(0), account, amount);
     }
 
     /**
@@ -421,6 +434,8 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
         _totalSupply -= amount;
 
         emit Transfer(account, address(0), amount);
+
+        _afterTokenTransfer(account, address(0), amount);
     }
 
     /**
@@ -455,7 +470,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
      * Calling conditions:
      *
      * - when `from` and `to` are both non-zero, `amount` of ``from``'s tokens
-     * will be to transferred to `to`.
+     * will be transferred to `to`.
      * - when `from` is zero, `amount` tokens will be minted for `to`.
      * - when `to` is zero, `amount` of ``from``'s tokens will be burned.
      * - `from` and `to` are never both zero.
@@ -467,7 +482,31 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
         address to,
         uint256 amount
     ) internal virtual {}
+
+    /**
+     * @dev Hook that is called after any transfer of tokens. This includes
+     * minting and burning.
+     *
+     * Calling conditions:
+     *
+     * - when `from` and `to` are both non-zero, `amount` of ``from``'s tokens
+     * has been transferred to `to`.
+     * - when `from` is zero, `amount` tokens have been minted for `to`.
+     * - when `to` is zero, `amount` of ``from``'s tokens have been burned.
+     * - `from` and `to` are never both zero.
+     *
+     * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
+     */
+    function _afterTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal virtual {}
 }
+
+
+pragma solidity 0.8.10;
+
 
 /******************************************/
 /*   FundsDistributionToken starts here   */
@@ -483,25 +522,30 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
  * fee or revenue shares among large numbers of token holders. Anyone can deposit funds, token holders can withdraw 
  * their claims.
  */
-
 contract FundsDistributionToken is ERC20 {
 
 	uint256 constant internal pointsMultiplier = 2**128;
 	uint256 internal pointsPerShare;
 
-	mapping(address => int256) public pointsCorrection;
+	mapping(address => int256) internal pointsCorrection;
 	mapping(address => uint256) internal withdrawnFunds;
-	
+
+	/**
+	 * @dev This event emits when new funds are distributed
+	 * @param by the address of the sender who distributed funds
+	 * @param fundsDistributed the amount of funds received for distribution
+	 */
 	event FundsDistributed(address indexed by, uint256 fundsDistributed);
+
+	/**
+	 * @dev This event emits when distributed funds are withdrawn by a token holder.
+	 * @param by the address of the receiver of funds
+	 * @param fundsWithdrawn the amount of funds that were withdrawn
+	 */
 	event FundsWithdrawn(address indexed by, uint256 fundsWithdrawn);
 
-
-	constructor (string memory name, string memory symbol) ERC20(name, symbol) {
-    }
-
-    function abs(int x) private pure returns (int) {
-        return x >= 0 ? x : -x;
-    }
+	constructor (string memory name, string memory symbol) ERC20(name, symbol) 
+	{}
 
 	/** 
 	 * prev. distributeDividends
@@ -513,12 +557,16 @@ contract FundsDistributionToken is ERC20 {
 	 *     which is `(msg.value * pointsMultiplier) % totalSupply()`.
 	 *   With a well-chosen `pointsMultiplier`, the amount funds that are not getting distributed
 	 *     in a distribution can be less than 1 (base unit).
+	 *   We can actually keep track of the undistributed ether in a distribution
+	 *     and try to distribute it in the next distribution ....... todo implement  
 	 */
 	function _distributeFunds(uint256 value) internal {
 		require(totalSupply() > 0, "FundsDistributionToken._distributeFunds: SUPPLY_IS_ZERO");
 
 		if (value > 0) {
-			pointsPerShare = pointsPerShare + (value * pointsMultiplier / totalSupply());
+			pointsPerShare = pointsPerShare + (
+				value * pointsMultiplier / totalSupply()
+			);
 			emit FundsDistributed(msg.sender, value);
 		}
 	}
@@ -528,12 +576,12 @@ contract FundsDistributionToken is ERC20 {
 	 * @notice Prepares funds withdrawal
 	 * @dev It emits a `FundsWithdrawn` event if the amount of withdrawn ether is greater than 0.
 	 */
-	function _prepareWithdraw(address recipient) internal returns (uint256) {
-		uint256 _withdrawableDividend = withdrawableFundsOf(recipient);
+	function _prepareWithdraw() internal returns (uint256) {
+		uint256 _withdrawableDividend = withdrawableFundsOf(msg.sender);
 	
-		withdrawnFunds[recipient] = withdrawnFunds[recipient] + _withdrawableDividend;
+		withdrawnFunds[msg.sender] = withdrawnFunds[msg.sender] + _withdrawableDividend;
 		
-		emit FundsWithdrawn(recipient, _withdrawableDividend);
+		emit FundsWithdrawn(msg.sender, _withdrawableDividend);
 
 		return _withdrawableDividend;
 	}
@@ -567,12 +615,7 @@ contract FundsDistributionToken is ERC20 {
 	 * @return The amount of funds that `_owner` has earned in total.
 	 */
 	function accumulativeFundsOf(address _owner) public view returns(uint256) {
-	    if (pointsCorrection[_owner] >= 0) {
-		    return (pointsPerShare * balanceOf(_owner) + uint256(pointsCorrection[_owner])) / pointsMultiplier;
-	    } else {
-	        return (pointsPerShare * balanceOf(_owner) - uint256(abs(pointsCorrection[_owner]))) / pointsMultiplier;
-	    }
-	    
+		return uint256(int256(pointsPerShare * balanceOf(_owner)) + pointsCorrection[_owner]) / pointsMultiplier;
 	}
 
 	/**
@@ -583,11 +626,11 @@ contract FundsDistributionToken is ERC20 {
 	 * @param value The amount to be transferred.
 	 */
 	function _transfer(address from, address to, uint256 value) internal override {
-		ERC20._transfer(from, to, value);
+		super._transfer(from, to, value);
 
-		uint256 magCorrection = pointsPerShare * value;
-		pointsCorrection[from] = pointsCorrection[from] + int256(magCorrection);
-		pointsCorrection[to] = pointsCorrection[to] - int256(magCorrection);
+		int256 _magCorrection = int256(pointsPerShare * value);
+		pointsCorrection[from] = pointsCorrection[from] + _magCorrection;
+		pointsCorrection[to] = pointsCorrection[to] - _magCorrection;
 	}
 
 	/**
@@ -597,7 +640,7 @@ contract FundsDistributionToken is ERC20 {
 	 * @param value The amount that will be created.
 	 */
 	function _mint(address account, uint256 value) internal override {
-		ERC20._mint(account, value);
+		super._mint(account, value);
 
 		pointsCorrection[account] = pointsCorrection[account] - int256(pointsPerShare * value);
 	}
@@ -609,118 +652,73 @@ contract FundsDistributionToken is ERC20 {
 	 * @param value The amount that will be burnt.
 	 */
 	function _burn(address account, uint256 value) internal override {
-		ERC20._burn(account, value);
+		super._burn(account, value);
 
 		pointsCorrection[account] = pointsCorrection[account] + int256(pointsPerShare * value);
 	}
 }
 
 /******************************************/
-/*          NrvToken starts here          */
+/*        NexusShares starts here         */
 /******************************************/
 
-contract NrvToken is FundsDistributionToken {
+contract NexusShares is FundsDistributionToken {
 
-    address[] public nrv;
-    address public nrvGov;
-    address internal base;
-    bool internal initialized;
-    uint256 nrvRate;
-    uint256 baseRate;
+	// token in which the funds can be sent to the FundsDistributionToken
+	IERC20 public immutable fundsToken;
+	
+	// balance of fundsToken that the FundsDistributionToken currently holds
+	uint256 public fundsTokenBalance;
 
-    event NrvMinted(address to, uint256 amount);
-    event NrvBurned(address from, uint256 amount);
 
-    modifier onlyNrv() { //array
-        require(isNrv(msg.sender) == true, "Caller is not nrv.");
-        _;
-    }
-    
-    modifier onlyGov() {
-        require(msg.sender == address(nrvGov), "Caller is not nrvGov.");
-        _;
-    }
-
-	constructor(string memory name, string memory symbol) FundsDistributionToken(name, symbol) {
-    }
-
-    function initialize(address _nrv, address _nrvGov, address _base) public {
-        require(initialized == false, "Already initialized.");
-        initialized = true;
-        nrv.push(_nrv);
-        nrvGov = _nrvGov;
-        base = _base;
-    }
-
-    /**
-    * @dev Mint NRV.
-    */
-    function mintNrv(address _to, uint256 _amount) external onlyNrv {
-        _mint(_to, _amount * nrvRate);
-        _mint(base, _amount * baseRate);
-        emit NrvMinted(_to, _amount);
-    }
-
-    /**
-    * @dev Burn NRV.
-    */
-    function burnNrv(address _from, uint256 _amount) external onlyNrv {
-        _burn(_from, _amount);
-        emit NrvBurned(_from, _amount);
-    }
-
-    /**
-    * @dev Withdraw accumulated fees.
-    */
-    function withdrawEth(address recipient) public {
-		uint256 withdrawableFunds = _prepareWithdraw(recipient);
-		payable(recipient).transfer(withdrawableFunds);
+	modifier onlyFundsToken () {
+		require(msg.sender == address(fundsToken), "FDT_ERC20Extension.onlyFundsToken: UNAUTHORIZED_SENDER");
+		_;
 	}
 
-    /**
-    * @dev Receive fees.
-    */
-    function receiveFee() external payable {
-		if (msg.value > 0) {
-			_distributeFunds(msg.value);
-			emit FundsDistributed(msg.sender, msg.value);
+	constructor(string memory name, string memory symbol, IERC20 _fundsToken) FundsDistributionToken(name, symbol)
+	{
+		require(address(_fundsToken) != address(0), "FDT_ERC20Extension: INVALID_FUNDS_TOKEN_ADDRESS");
+        _mint(msg.sender, 25*1e18);
+		fundsToken = _fundsToken;
+	}
+
+	/**
+	 * @notice Withdraws all available funds for a token holder
+	 */
+	function withdrawFunds() 
+		external 
+	{
+		uint256 withdrawableFunds = _prepareWithdraw();
+		
+		require(fundsToken.transfer(msg.sender, withdrawableFunds), "FDT_ERC20Extension.withdrawFunds: TRANSFER_FAILED");
+
+		_updateFundsTokenBalance();
+	}
+
+	/**
+	 * @dev Updates the current funds token balance 
+	 * and returns the difference of new and previous funds token balances
+	 * @return A int256 representing the difference of the new and previous funds token balance
+	 */
+	function _updateFundsTokenBalance() internal returns (int256) {
+		uint256 prevFundsTokenBalance = fundsTokenBalance;
+		
+		fundsTokenBalance = fundsToken.balanceOf(address(this));
+
+		return int256(fundsTokenBalance) - (int256(prevFundsTokenBalance));
+	}
+
+	/**
+	 * @notice Register a payment of funds in tokens. May be called directly after a deposit is made.
+	 * @dev Calls _updateFundsTokenBalance(), whereby the contract computes the delta of the previous and the new 
+	 * funds token balance and increments the total received funds (cumulative) by delta by calling _registerFunds()
+	 */
+	function updateFundsReceived() external {
+		int256 newFunds = _updateFundsTokenBalance();
+
+		if (newFunds > 0) {
+			_distributeFunds(uint256(newFunds));
 		}
 	}
-
-/******************************************/
-/*        Governance starts here          */
-/******************************************/
-
-    function setGovernance(address _nrvGov) external onlyGov {
-        nrvGov = _nrvGov;
-    }
-
-    function setRates(uint256 _nrvRate, uint256 _baseRate) external onlyGov {
-        nrvRate = _nrvRate;
-        baseRate = _baseRate;
-    }
-
-    function setBase(address _base) external onlyGov {
-        base = _base;
-    }
-
-    function addNrv(address _nrv) external onlyGov {
-        nrv.push(_nrv);
-    }
-
-    function removeNrv(uint256 _index) external onlyGov {
-        delete nrv[_index];
-    }
-
-    function isNrv(address caller) internal view returns(bool) {
-        bool valid;
-        uint256 arrayLength = nrv.length;
-        for (uint256 i = 0; i < arrayLength; i++) {
-            if (caller == nrv[i]) {
-                valid = true;
-                break;
-            } 
-        }    
-        return valid;
-    }
 }
